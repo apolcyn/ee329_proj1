@@ -2,7 +2,6 @@
 
 void write_cmd(char cmd) {
 	P2OUT = 0;
-	P1DIR ||= BIT3;
 
 	// upper nibble
 	P1OUT = cmd;
@@ -26,7 +25,7 @@ void write_cmd(char cmd) {
 void write_data(char data) {
 	P2OUT = BIT2;
 	P1OUT = 0;
-	P1DIR ||= BIT3;
+
 
 	// upper nibble
 	P1OUT = data;
@@ -46,11 +45,9 @@ void write_data(char data) {
     P1OUT = 0;
 }
 
-write_msg(char* arr, int len) {
-	int i = 0;
-
-	while(i < len) {
-		write_data(arr[i++]);
+write_msg(char* arr) {
+	while(*arr) {
+		write_data(*arr++);
 	}
 }
 
@@ -85,7 +82,7 @@ int main(void) {
     __delay_cycles(10);
     P2OUT = 0;
 
-    write_cmd(BIT2 | BIT3 | BIT5); // 8 bit mode, 2 line mode, display on
+    write_cmd(BIT2 | BIT3 | BIT5); // 2 line mode, display on
 
     __delay_cycles(2000000);
 
@@ -117,13 +114,26 @@ int main(void) {
 
     write_cmd(BIT1); // return home, set DDRAM address to 0x00
 
-    write_msg("hello world!", 12);
+    write_msg("hello world!");
+
+    write_cmd(BIT5 | BIT3 | BIT2);
+
+    P1IE = 0;
+
+    write_cmd(BIT7 | 0x40);
+    write_msg("press now");
+
+    P1DIR &= ~BIT3;
+    P1REN |= BIT3;
+    P1IFG = 0;
+    P1IE = BIT3;
+    __enable_interrupt();
 	return 0;
 }
 
-// Timer A0 interrupt service routine
-#pragma vector=RESET_VECTOR
-__interrupt void message_display (void) {
+#pragma vector=PORT1_VECTOR
+__interrupt void button(void) {
 	write_cmd(BIT7 | 0x40);
-    write_msg("pressed", 7);
+	write_msg("just pressed");
+	P1IFG = 0;
 }
