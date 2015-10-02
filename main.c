@@ -110,9 +110,11 @@ int main(void) {
     write_msg("press now");
 
     P1DIR &= ~BIT3;
-    P1REN |= BIT3;
-    P1IFG = 0;
     P1IE = BIT3;
+    P1REN |= BIT3;
+    P1OUT |= BIT3;
+    P1IES |= BIT3;
+    P1IFG &= ~BIT3;
     __enable_interrupt();
 	return 0;
 }
@@ -145,5 +147,6 @@ __interrupt void button(void) {
 		break;
 	}
 	write_cmd(BIT1); // return home
+	P1OUT |= BIT3;
 	P1IFG = 0;
 }
