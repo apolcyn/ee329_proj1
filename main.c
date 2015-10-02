@@ -1,5 +1,7 @@
 #include <msp430.h> 
 
+int action = 0;
+
 void write_cmd(char cmd) {
 	P2OUT = 0;
 
@@ -96,23 +98,7 @@ int main(void) {
 
     write_cmd(BIT1); // return home, set DDRAM address to 0x00
 
-    write_data(0x48); // 'H'
-    write_data(0x45); // 'E'
-    write_data(0x4C); // 'L'
-    write_data(0x4C); // 'L'
-    write_data(0x4F); // 'O'
-
-    write_data(0x20);
-
-    write_data(0x57);  // 'W'
-    write_data(0x4F);  // 'O'
-    write_data(0x52);  // 'R'
-    write_data(0x4C);  // 'L'
-    write_data(0x44);  // 'D'
-
-    write_data(0x21);  // '!'
-
-    write_cmd(BIT1); // return home, set DDRAM address to 0x00
+    write_cmd(BIT5 | BIT3 | BIT2); // function set,
 
     write_msg("hello world!");
 
@@ -133,7 +119,31 @@ int main(void) {
 
 #pragma vector=PORT1_VECTOR
 __interrupt void button(void) {
-	write_cmd(BIT7 | 0x40);
-	write_msg("just pressed");
+	int i = 0;
+
+	switch(action) {
+	case 0:
+		write_cmd(BIT1);
+		write_msg("just pressed");
+		write_cmd(BIT1); // return home
+		action = 1;
+		break;
+	case 1:
+		write_cmd(BIT1);
+		write_cmd(BIT7 | 0x40);
+		write_msg("pressed again");
+		write_cmd(BIT1); // return home
+		action = 2;
+		break;
+	case 2:
+		write_cmd(BIT1);
+		for(i = 0; i < 80; i++) {
+			 write_cmd(BIT4 | BIT3 | BIT2);
+		}
+		write_cmd(BIT1); // return home
+		action = 0;
+		break;
+	}
+	write_cmd(BIT1); // return home
 	P1IFG = 0;
 }
