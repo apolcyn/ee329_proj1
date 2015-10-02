@@ -100,6 +100,8 @@ int main(void) {
 
     write_cmd(BIT1); // return home, set DDRAM address to 0x00
 
+    write_cmd(BIT2 | BIT3 | BIT5);  // function set, put in two line mode, nibble mode
+
     write_msg("hello world!");
 
     P1IE = 0;
